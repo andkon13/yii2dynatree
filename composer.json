@@ -1,0 +1,21 @@
+{
+    "name": "andkon/yii2dynatree",
+    "description": "Tree widget for Yii2",
+    "minimum-stability": "dev",
+    "license": "proprietary",
+    "version": "0.1",
+    "authors": [
+        {
+            "name": "Andrey Konenkov",
+            "email": "andkon13@mail.ru"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "andkon\\yii2dynatree\\": ""
+        }
+    }
+}

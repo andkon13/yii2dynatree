@@ -40,7 +40,7 @@ class Tree extends Widget
     private $script;
 
     protected $functions = [
-        'checkbox'       => false,
+        'checkbox'       => 'false',
         'onActivate'     => 'null',
         'onDeactivate'   => 'null',
         'onFocus'        => 'null',

@@ -25,6 +25,8 @@ class Tree extends Widget
     public $titleField = 'name';
     public $ajaxUrl = null;
 
+    public $isAjax = false;
+
     /**
      * @var string
      */
@@ -35,6 +37,38 @@ class Tree extends Widget
      */
     private $tree = [];
 
+    private $script;
+
+    protected $functions = [
+        'checkbox'       => false,
+        'onActivate'     => 'null',
+        'onDeactivate'   => 'null',
+        'onFocus'        => 'null',
+        'onBlur'         => 'null',
+        'minExpandLevel' => 1,
+        'onClick'        => '""',
+        'dnd'            => [
+            'preventVoidMoves' => 'true',
+            'onDragStart'      => 'function(node) {return true;}',
+            'onDragEnter'      => 'function(node, sourceNode) {return true;}',
+            'onDrop'           => 'function(node, sourceNode, hitMode, ui, draggable) {sourceNode.move(node, hitMode);}',
+            'onDragStop'       => '
+                function(node) {
+                    var id = node.data.key;
+                    var parent_id = node.parent.data.key;
+                    var sort = [];
+                    for(i in node.parent.childList){
+                        sort[i] = node.parent.childList[i].data.key;
+                    }
+                    console.log(parent_id, node);
+                    $.post(
+                        "{$this->ajaxUrl}",
+                        {id: id, parent_id: parent_id, sort: sort}
+                    );
+                }',
+        ]
+    ];
+
     /**
      * @return void
      */
@@ -43,8 +77,6 @@ class Tree extends Widget
         parent::init();
         if (!empty($this->model)) {
             $this->renderTree();
-            $this->tree = json_encode($this->tree);
-            $this->registryScript();
         }
     }
 
@@ -53,7 +85,13 @@ class Tree extends Widget
      */
     public function run()
     {
-        $html = Html::tag('div', '', ['id' => $this->id]);
+        $html       = Html::tag('div', '', ['id' => $this->id]);
+        $this->tree = json_encode($this->tree);
+        $this->registryScript();
+
+        if ($this->isAjax) {
+            $html .= Html::script($this->script);
+        }
 
         return $html;
     }
@@ -61,7 +99,7 @@ class Tree extends Widget
     /**
      * @return void
      */
-    private function renderTree()
+    protected function renderTree()
     {
         $tree = [];
         foreach ($this->model as $item) {
@@ -84,7 +122,7 @@ class Tree extends Widget
      *
      * @return array
      */
-    private function renderMenuItems($items, $tree, $isFolder = false)
+    protected function renderMenuItems($items, $tree, $isFolder = false)
     {
         $result = [];
         foreach ($items as $item) {
@@ -106,11 +144,37 @@ class Tree extends Widget
     }
 
     /**
+     * Возвращает JS функцию по пути вида dnd/preventVoidMoves
+     * Сделано для упрощения переопределения js функций в классах потомках
+     *
+     * @param string $path
+     *
+     * @return bool
+     */
+    protected function getTreeJsFunction($path)
+    {
+        $path   = explode('/', $path);
+        $result = false;
+
+        $node = $this->functions;
+        foreach ($path as $key) {
+            if (array_key_exists($key, $node)) {
+                $node   = $node[$key];
+                $result = $node;
+            } else {
+                break;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Регистрируем скритпы
      *
      * @return void
      */
-    private function registryScript()
+    protected function registryScript()
     {
         $path = \Yii::$app->getAssetManager()->publish(__DIR__ . '/assets/dynatree/');
         $this->getView()->registerJsFile(
@@ -123,60 +187,29 @@ class Tree extends Widget
         );
 
         $this->getView()->registerCssFile($path[1] . '/skin-vista/ui.dynatree.css');
-        $script = <<<JS
+        $script       = <<<JS
 $(function() {
   $("#{$this->id}").dynatree({
+    onActivate: {$this->getTreeJsFunction('onActivate')},
+    onDeactivate: {$this->getTreeJsFunction('onDeactivate')},
+    minExpandLevel: {$this->getTreeJsFunction('minExpandLevel')},
+    checkbox: {$this->getTreeJsFunction('checkbox')},
+    onFocus: {$this->getTreeJsFunction('onFocus')},
+    onBlur: {$this->getTreeJsFunction('onBlur')},
     debugLevel: 0,
+    onClick: {$this->getTreeJsFunction('onClick')},
     dnd: {
-      preventVoidMoves: true, // Prevent dropping nodes 'before self', etc.
-      onDragStart: function(node) {
-        /** This function MUST be defined to enable dragging for the tree.
-         *  Return false to cancel dragging of node.
-         */
-        return true;
-      },
-      onDragEnter: function(node, sourceNode) {
-        return true;
-        /** sourceNode may be null for non-dynatree droppables.
-         *  Return false to disallow dropping on node. In this case
-         *  onDragOver and onDragLeave are not called.
-         *  Return 'over', 'before, or 'after' to force a hitMode.
-         *  Return ['before', 'after'] to restrict available hitModes.
-         *  Any other return value will calc the hitMode from the cursor position.
-         */
-        // Prevent dropping a parent below another parent (only sort
-        // nodes under the same parent)
-        if(node.parent !== sourceNode.parent){
-          return false;
-        }
-        // Don't allow dropping *over* a node (would create a child)
-        return ["before", "after"];
-      },
-      onDrop: function(node, sourceNode, hitMode, ui, draggable) {
-        /** This function MUST be defined to enable dropping of items on
-         *  the tree.
-         */
-        sourceNode.move(node, hitMode);
-      },
-       onDragStop: function(node) {
-        var id = node.data.key;
-        var parent_id = node.parent.data.key;
-        var sort = [];
-        for(i in node.parent.childList){
-            sort[i] = node.parent.childList[i].data.key;
-        }
-        console.log(parent_id, node);
-        $.post(
-            'http://lost2/index.php?r=Pages/menu-item/moveintree&post',
-            {id: id, parent_id: parent_id, sort: sort}
-        );
-      }
+      preventVoidMoves: {$this->getTreeJsFunction('dnd/preventVoidMoves')}, // Prevent dropping nodes 'before self', etc.
+      onDragStart: {$this->getTreeJsFunction('dnd/onDragStart')},
+      onDragEnter: {$this->getTreeJsFunction('dnd/onDragEnter')},
+      onDrop: {$this->getTreeJsFunction('dnd/onDrop')},
+      onDragStop: {$this->getTreeJsFunction('dnd/onDragStop')}
     },
     children: {$this->tree}
   });
 });
 JS;
-
-        $this->getView()->registerJs($script, View::POS_END);
+        $this->script = str_replace('{$this->ajaxUrl}', $this->ajaxUrl, $script);
+        $this->getView()->registerJs($this->script, View::POS_END);
     }
 }

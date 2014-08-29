@@ -25,13 +25,13 @@ class MoveInTree extends Action
         $sort = $controller->getPost('sort');
         if (is_array($sort) && !empty($sort)) {
             $query = 'update ' . $model->tableName() . ' set sort = case id ';
-            foreach ($sort as $id => $val) {
-                $val = intval($val);
-                if (!$val) {
+            foreach ($sort as $position => $id) {
+                $id = intval($id);
+                if (!$id) {
                     continue;
                 }
 
-                $query .= ' when ' . $val . ' then ' . $id;
+                $query .= ' when ' . $id . ' then ' . $position;
             }
 
             $query .= ' end';

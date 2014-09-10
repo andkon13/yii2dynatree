@@ -1,6 +1,6 @@
 yii2dynatree
 ============
-
+<pre>
 Как использовать/How to use
 
 Model:
@@ -45,3 +45,4 @@ echo \app\pathToWidget\Tree::widget(
         'model'   => $model,
     ]
 );
+</pre>

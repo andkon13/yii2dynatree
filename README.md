@@ -1,6 +1,9 @@
 yii2dynatree
 ============
 <pre>
+demo:
+    http://andkon.bl.ee/index.php?r=store
+
 install:
 
 php composer.phar require "andkon/yii2dynatree": "dev-master"

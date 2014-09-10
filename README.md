@@ -1,6 +1,10 @@
 yii2dynatree
 ============
 <pre>
+install:
+
+php composer.phar require "andkon/yii2dynatree": "dev-master"
+
 Как использовать/How to use
 
 Model:

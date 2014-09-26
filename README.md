@@ -1,6 +1,8 @@
 yii2dynatree
 ============
 <pre>
+docs:
+    http://wwwendt.de/tech/dynatree/
 demo:
     http://andkon.bl.ee/index.php?r=store
 

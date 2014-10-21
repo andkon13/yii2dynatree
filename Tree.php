@@ -11,6 +11,7 @@ namespace andkon\yii2dynatree;
 use yii\base\Widget;
 use yii\db\ActiveRecord;
 use yii\helpers\Html;
+use yii\web\JqueryAsset;
 use yii\web\View;
 
 class Tree extends Widget
@@ -166,11 +167,17 @@ class Tree extends Widget
         $path = \Yii::$app->getAssetManager()->publish(__DIR__ . '/assets/dynatree/');
         $this->getView()->registerJsFile(
             $path[1] . '/jquery-ui.custom.js',
-            '\yii\web\JqueryAsset'
+            [
+                'position' => \yii\web\View::POS_END,
+                'depends'  => ['\yii\web\JqueryAsset'],
+            ]
         );
         $this->getView()->registerJsFile(
             $path[1] . '/jquery.dynatree.js',
-            ['\yii\web\JqueryAsset']
+            [
+                'position' => \yii\web\View::POS_END,
+                'depends'  => ['\yii\web\JqueryAsset'],
+            ]
         );
 
         $this->getView()->registerCssFile($path[1] . '/skin-vista/ui.dynatree.css');

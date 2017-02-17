@@ -18,6 +18,11 @@ need attributes:
     parent_id - FK to id
     sort - INT order in tree
     name - STRING as label
+you can override the field names 
+attribs
+$pkField 
+$parentField 
+$sortField 
 
 Controller:
 class UnitController extends Controller
@@ -27,6 +32,12 @@ class UnitController extends Controller
     {
         $actions               = parent::actions();
         $actions['moveintree'] = 'andkon\yii2dynatree\actions\MoveInTree';
+        
+        // or
+        $actions['moveintree'] = [
+            'class' => andkon\yii2dynatree\actions\MoveInTree',
+            'sortField' => 'order', // override field name
+        ];
 
         return $actions;
     }

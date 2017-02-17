@@ -13,18 +13,22 @@ use yii\base\Action;
 
 class MoveInTree extends Action
 {
+    public $pkField = 'id';
+    public $parentField = 'parent_id';
+    public $sortField = 'sort';
+
     public function run()
     {
         /** @var Controller $controller */
-        $controller       = $this->controller;
-        $model            = $controller->findModel($controller->getPost('id'));
-        $parent_id        = intval($controller->getPost('parent_id'));
-        $parent_id        = ($parent_id) ? $parent_id : null;
-        $model->parent_id = $parent_id;
+        $controller = $this->controller;
+        $model      = $controller->findModel($controller->getPost($this->pkField));
+        $parent_id  = intval($controller->getPost($this->parentField));
+        $parent_id  = ($parent_id) ? $parent_id : null;
+        $model->setAttribute($this->parentField, $parent_id);
         $model->save();
         $sort = $controller->getPost('sort');
         if (is_array($sort) && !empty($sort)) {
-            $query = 'update ' . $model->tableName() . ' set sort = case id ';
+            $query = 'update "' . $model->tableName() . '" set "' . $this->sortField . '" = case ' . $this->pkField . ' ';
             foreach ($sort as $position => $id) {
                 $id = intval($id);
                 if (!$id) {
@@ -35,6 +39,7 @@ class MoveInTree extends Action
             }
 
             $query .= ' end';
+            $query .= ' where "' . $this->pkField . '" in (' . implode(',', $sort) . ')';
             \Yii::$app->getDb()->createCommand($query)->execute();
         }
     }

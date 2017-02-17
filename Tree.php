@@ -48,6 +48,7 @@ class Tree extends Widget
         'onBlur'         => 'null',
         'minExpandLevel' => 1,
         'onClick'        => '""',
+        'onCustomRender' => 'null',
         'dnd'            => [
             'preventVoidMoves' => 'true',
             'onDragStart'      => 'function(node) {return true;}',
@@ -225,6 +226,7 @@ class Tree extends Widget
     onBlur: {$this->getTreeJsFunction('onBlur')},
     debugLevel: 0,
     onClick: {$this->getTreeJsFunction('onClick')},
+    onCustomRender: {$this->getTreeJsFunction('onCustomRender')},
     children: {$this->tree}
 JS;
         if ($this->functions['dnd']) {

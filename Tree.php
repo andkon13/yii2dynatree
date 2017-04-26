@@ -16,6 +16,8 @@ use yii\web\View;
 
 class Tree extends Widget
 {
+    const SELECTOR_UL = '"ul"';
+    const SELECTOR_OL = '"ol"';
     /**
      * @var ActiveRecord[]
      */
@@ -25,6 +27,9 @@ class Tree extends Widget
     public $parentField = 'parent_id';
     public $titleField = 'name';
     public $ajaxUrl = null;
+
+    public $parentSelector = self::SELECTOR_UL;
+    public $childSelector = self::SELECTOR_UL;
 
     public $isAjax = false;
 
@@ -218,6 +223,8 @@ class Tree extends Widget
     protected function buildTreeJsFunctions()
     {
         $script = <<<JS
+    parentSelector: {$this->parentSelector},
+    childSelector: {$this->childSelector},
     onActivate: {$this->getTreeJsFunction('onActivate')},
     onDeactivate: {$this->getTreeJsFunction('onDeactivate')},
     minExpandLevel: {$this->getTreeJsFunction('minExpandLevel')},
